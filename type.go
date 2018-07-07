@@ -6,17 +6,15 @@ const (
 )
 
 type User struct {
-	OpenId   string `json:"open_id"`
-	NickName string `json:"nick_name"`
-	HeadUrl  string `json:"head_url"`
-	Phone    string `json:"phone"`
-	Name     string `json:"name"`
-	Sex      int    `json:"gender"`
-	Language string `json:"language"`
-	City     string `json:"city"`
-	Province string `json:"province"`
-	Country  string `json:"country"`
-	Unionid  string `json:"-"`
+	Openid    string `json:"openId"`
+	NickName  string `json:"nickName"`
+	Gender    int    `json:"gender"`
+	Language  string `json:"language"`
+	City      string `json:"city"`
+	Province  string `json:"province"`
+	Country   string `json:"country"`
+	AvatarUrl string `json:"avatarUrl"`
+	UnionId   string `json:"unionId"`
 }
 
 type GetUserArgs struct {
@@ -29,4 +27,5 @@ type Session struct {
 	OpenId     string `json:"openid"`
 	SessionKey string `json:"session_key"`
 	ExpiresIn  int    `json:"expires_in"`
+	UnionId    string `json:"unionid"`
 }

@@ -9,7 +9,8 @@ import (
 )
 
 type MiniProgramInterface interface {
-	GetUser(args *GetUserArgs) (*User, error)
+	GetSession(code string) (*Session, error)
+	Decode(encryptedData, iv string, v interface{}) error
 }
 
 type MiniProgramImpl struct {
@@ -39,21 +40,16 @@ func (m *MiniProgramImpl) GetSession(code string) (*Session, error) {
 	return s, nil
 }
 
-func (m *MiniProgramImpl) GetUser(args *GetUserArgs) (*User, error) {
-	session, err := m.GetSession(args.Code)
-	if err != nil {
-		return nil, err
-	}
-	user := &User{}
+func (m *MiniProgramImpl) Decode(encryptedData, iv string, session *Session, v interface{}) error {
 	wxBizDataCrypt := WxBizDataCrypt{m.AppId, session.SessionKey}
-	j, err := wxBizDataCrypt.Decrypt(args.EncryptedData, args.Iv, true)
+	j, err := wxBizDataCrypt.Decrypt(encryptedData, iv, true)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	s, _ := j.(string)
-	err = json.Unmarshal([]byte(s), user)
+	err = json.Unmarshal([]byte(s), v)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return user, nil
+	return nil
 }
