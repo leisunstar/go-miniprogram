@@ -65,34 +65,13 @@ func (m *MiniProgramImpl) Decode(encryptedData, iv string, session *Session, v i
 	return nil
 }
 
-func (m *MiniProgramImpl) GetWXacodeunLimit(scene, page string, width int, isHyaline bool, filePath string) (string, error) {
-	token, err := m.getAccessToken()
+func (m *MiniProgramImpl) GetWXacodeunLimitToFile(scene, page string, width int, isHyaline bool, filePath string) error {
+	f, err := os.Create(filePath)
 	if err != nil {
-		return "", err
+		return err
 	}
-	s := &QrCode{
-		Scene:     scene,
-		Page:      page,
-		Width:     width,
-		IsHyaline: isHyaline,
-	}
-	var errs []error
-	_, body, errs := gorequest.New().Post(fmt.Sprintf(GetWxacodeunLimitUrl, token)).
-		Retry(3, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError).
-		SendStruct(s).
-		End()
-	if errs != nil {
-		return "", errors.New(fmt.Sprintf("%v", errs))
-	}
-	if len(filePath) > 0 {
-		f, err := os.Create(filePath)
-		if err != nil {
-			return "", err
-		}
-		defer f.Close()
-		f.WriteString(body)
-	}
-	return body, nil
+	defer f.Close()
+	return m.GetWXacodeunLimitWriter(scene, page, width, isHyaline, f)
 }
 
 func (m *MiniProgramImpl) GetWXacodeunLimitWriter(scene, page string, width int, isHyaline bool, writer io.Writer) error {
