@@ -15,7 +15,7 @@ import (
 type MiniProgramInterface interface {
 	GetSession(code string) (*Session, error)
 	Decode(encryptedData, iv string, v interface{}) error
-	GetWXacodeunLimit(scene, page string, width int, isHyaline bool, filePath string) (string, error)
+	GetWXacodeunLimit(scene, page string, width int, isHyaline bool, filePath string) error
 	GetWXacodeunLimitWriter(scene, page string, width int, isHyaline bool, writer io.Writer)
 }
 
