@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/parnurzeal/gorequest"
+	"io"
 	"net/http"
 	"os"
 	"sync"
@@ -15,6 +16,7 @@ type MiniProgramInterface interface {
 	GetSession(code string) (*Session, error)
 	Decode(encryptedData, iv string, v interface{}) error
 	GetWXacodeunLimit(scene, page string, width int, isHyaline bool, filePath string) (string, error)
+	GetWXacodeunLimitWriter(scene, page string, width int, isHyaline bool, writer io.Writer)
 }
 
 type MiniProgramImpl struct {
@@ -91,6 +93,29 @@ func (m *MiniProgramImpl) GetWXacodeunLimit(scene, page string, width int, isHya
 		f.WriteString(body)
 	}
 	return body, nil
+}
+
+func (m *MiniProgramImpl) GetWXacodeunLimitWriter(scene, page string, width int, isHyaline bool, writer io.Writer) error {
+	token, err := m.getAccessToken()
+	if err != nil {
+		return err
+	}
+	s := &QrCode{
+		Scene:     scene,
+		Page:      page,
+		Width:     width,
+		IsHyaline: isHyaline,
+	}
+	var errs []error
+	_, body, errs := gorequest.New().Post(fmt.Sprintf(GetWxacodeunLimitUrl, token)).
+		Retry(3, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError).
+		SendStruct(s).
+		End()
+	if errs != nil {
+		return errors.New(fmt.Sprintf("%v", errs))
+	}
+	_, err = writer.Write([]byte(body))
+	return err
 }
 
 func (m *MiniProgramImpl) getAccessToken() (string, error) {
