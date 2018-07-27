@@ -2,7 +2,6 @@ package miniprogram
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/parnurzeal/gorequest"
 	"io"
@@ -43,10 +42,13 @@ func (m *MiniProgramImpl) AddAppSecret(secret string) *MiniProgramImpl {
 
 func (m *MiniProgramImpl) GetSession(code string) (*Session, error) {
 	s := &Session{}
-	_, _, errs := gorequest.New().Get(fmt.Sprintf(JsCode2SessionUrl,
+	resp, body, errs := gorequest.New().Get(fmt.Sprintf(JsCode2SessionUrl,
 		m.AppId, m.AppSecret, code)).EndStruct(s)
 	if errs != nil {
-		return nil, errors.New(fmt.Sprintf("%v", errs))
+		return nil, fmt.Errorf("get session error %v", errs)
+	}
+	if len(s.OpenId) == 0 {
+		return nil, fmt.Errorf("get session error %s body %s", resp.Status, body)
 	}
 	return s, nil
 }
@@ -86,12 +88,15 @@ func (m *MiniProgramImpl) GetWXacodeunLimitWriter(scene, page string, width int,
 		IsHyaline: isHyaline,
 	}
 	var errs []error
-	_, body, errs := gorequest.New().Post(fmt.Sprintf(GetWxacodeunLimitUrl, token)).
+	resp, body, errs := gorequest.New().Post(fmt.Sprintf(GetWxacodeunLimitUrl, token)).
 		Retry(3, 5*time.Second, http.StatusBadRequest, http.StatusInternalServerError).
 		SendStruct(s).
 		End()
 	if errs != nil {
-		return errors.New(fmt.Sprintf("%v", errs))
+		return fmt.Errorf("get qrcode error %v", errs)
+	}
+	if len(body) < 1000 {
+		return fmt.Errorf("get qrcode error %s body %s", resp.Status, body)
 	}
 	_, err = writer.Write([]byte(body))
 	return err
@@ -106,10 +111,13 @@ func (m *MiniProgramImpl) getAccessToken() (string, error) {
 		}
 	}
 	ac := &AccessToken{}
-	_, _, errs := gorequest.New().Get(fmt.Sprintf(GetAccessTokenUrl,
+	resp, body, errs := gorequest.New().Get(fmt.Sprintf(GetAccessTokenUrl,
 		m.AppId, m.AppSecret)).EndStruct(ac)
 	if errs != nil {
-		return "", errors.New(fmt.Sprintf("%v", errs))
+		return "", fmt.Errorf("%v", errs)
+	}
+	if len(ac.Token) == 0 {
+		return "", fmt.Errorf("getAccessToken error %ds body %s", resp.Status, body)
 	}
 	m.AccessToken = ac.Token
 	m.Expires = time.Now().Unix() + int64(ac.ExpiresIn)
