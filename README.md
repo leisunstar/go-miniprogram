@@ -11,8 +11,8 @@ eg:
     )
 
     func main() {
-    	m := miniprogram.NewMiniProgramImpl().AddAppId("wx57211e78df7eabca").
-    		AddAppSecret("f652af82546a92b5a8cef879af6b998c")
+    	m := miniprogram.NewMiniProgramImpl().AddAppId("xxx").
+    		AddAppSecret("xxx")
     	//获取session
     	session, err := m.GetSession("code")
     	if err != nil {
