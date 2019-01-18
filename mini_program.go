@@ -16,6 +16,7 @@ type MiniProgramInterface interface {
 	Decode(encryptedData, iv string, v interface{}) error
 	GetWXacodeunLimit(scene, page string, width int, isHyaline bool, filePath string) error
 	GetWXacodeunLimitWriter(scene, page string, width int, isHyaline bool, writer io.Writer)
+	GetAccessToken() (string, error)
 }
 
 type MiniProgramImpl struct {
@@ -77,7 +78,7 @@ func (m *MiniProgramImpl) GetWXacodeunLimitToFile(scene, page string, width int,
 }
 
 func (m *MiniProgramImpl) GetWXacodeunLimitWriter(scene, page string, width int, isHyaline bool, writer io.Writer) error {
-	token, err := m.getAccessToken()
+	token, err := m.GetAccessToken()
 	if err != nil {
 		return err
 	}
@@ -102,7 +103,7 @@ func (m *MiniProgramImpl) GetWXacodeunLimitWriter(scene, page string, width int,
 	return err
 }
 
-func (m *MiniProgramImpl) getAccessToken() (string, error) {
+func (m *MiniProgramImpl) GetAccessToken() (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if len(m.AccessToken) > 0 {
